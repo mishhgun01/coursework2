@@ -101,28 +101,37 @@ int main(){
     while(ans!=7){
         ans = gui();
         if (ans==0){
+            clear
             info();
         }
         if (ans==1){
+            clear
+            printf("EXAMPLE:iphone 13,phone,5000,13,89990.99,6.0,255,255,134\n");
             printf("write data with , separator->");
             input_kb(hd,hdt);
         }
         if (ans==2) {
+            clear
+            output(hd,hdt);
             printf("write id of node you want to edit->");
             scanf("%i",&id);
+            printf("EXAMPLE:iphone 13,phone,5000,13,89990.99,6.0,255,255,134\n");
             printf("write new data with , separator->");
             edit(hd,hdt,id);
         }
         if (ans==3) {
-
+            clear
+            output(hd,hdt);
             printf("write id of node you want to delete->");
             scanf("%i", &id);
             deletion(hdt, hd, id);
         }
         if(ans==4) {
+            clear
             output(hd, hdt);
         }
         if (ans==5){
+            clear
             printf("Fields:\n"
                    "1 - ID\n"
                    "2 - Quantity\n"
@@ -180,6 +189,7 @@ int main(){
             }
         }
         if (ans==6){
+            clear
             printf("Fields:\n"
                    "1 - ID\n"
                    "2 - Quantity\n"
@@ -226,6 +236,7 @@ int main(){
         }
     }
     if (ans==7){
+        clear
         fp1 = fopen("lab07.txt","w");
         save_and_exit(hd,hdt,fp1);
     }
@@ -233,6 +244,8 @@ int main(){
     fclose(ffp);
     free(hd);
     free(hdt);
+    printf("See You!\n");
+    getchar();
     return 0;
 }
 
@@ -412,7 +425,6 @@ char* bgets(char *st, int const len, FILE *fp) {
 
 
 void deletion(dt_head *dth, g_head *gh, int deleting){
-
     gadget * q;
     for(q = gh->first; q != NULL; q = q->next) {
         if(q->no == deleting) {
@@ -663,7 +675,7 @@ void filter_by_float_(g_head*hd,dt_head *types,float (*field)(gadget*)){
                    temp->quantity,
                    temp->screen_diag, temp->price,
                    temp->color_in_RGB[0], temp->color_in_RGB[1], temp->color_in_RGB[2]);
-            }
+        }
         temp = temp->next;
     }
 
@@ -685,6 +697,10 @@ void input_kb(g_head *hd,dt_head * dev_type){
     getchar();
     bgets(line,100,stdin);
     pLine= split(line,',');
+    if(pLine==NULL){
+        printf("Undefined error..");
+        exit(1);
+    }
     Node->name = pLine[0];
     Node->device_type = search_or_fill(dev_type,pLine[1]);
     Node->battery_capacity=(int)strtol(pLine[2],NULL,10);
@@ -711,6 +727,10 @@ void edit(g_head*hd, dt_head*hdt,int id){
     getchar();
     bgets(line,100,stdin);
     pLine= split(line,',');
+    if(pLine==NULL){
+        printf("Undefined error..");
+        exit(1);
+    }
     temp = hd->first;
     while (temp->next!=NULL){
         if(temp->no==id){
@@ -749,6 +769,10 @@ device_type * search_or_fill(dt_head* hdt, char*dtName){
         dt->prev = hdt->last;
         hdt->last = dt;
         hdt->count++;
+    }
+    if(dt==NULL){
+        printf("Undefined error..");
+        exit(1);
     }
     return dt;
 }
@@ -796,7 +820,8 @@ void info(){
 void save_and_exit(g_head *hd, dt_head*dth, FILE *fp){
     gadget *temp;
     if(fp==NULL){
-        printf("error");
+        printf("Undefined error..");
+        exit(1);
     }
     temp = hd->first;
     while (temp->next!=NULL){
