@@ -40,6 +40,7 @@ typedef struct g_Head{
     int count;
 }g_head;
 
+void output_dt(dt_head*dt);
 char** split(char* line, const char sep);
 void output(g_head *hd, dt_head *types);
 void fill(dt_head * dth, FILE* ffp);
@@ -63,22 +64,22 @@ void swap_(gadget * temp0, gadget * temp1);
 void sort_by_str(gadget * left, gadget * right, char* (*field)(gadget*));
 void sort_by_int_(gadget * left, gadget * right, int (*field)(gadget*));
 void sort_by_float_(gadget * left, gadget * right, float (*field)(gadget*));
-void filter_by_str_(g_head*hd,dt_head *types,char* (*field)(gadget*));
-void filter_by_int_(g_head*hd,dt_head *types,int (*field)(gadget*));
-void filter_by_float_(g_head*hd,dt_head *types,float (*field)(gadget*));
-void input_kb(g_head *hd,dt_head * dev_type);
+void filter_by_str_(g_head*hd,char* (*field)(gadget*));
+void filter_by_int_(g_head*hd,int (*field)(gadget*));
+void filter_by_float_(g_head*hd,float (*field)(gadget*));
+void input_kb(g_head *hd,dt_head * dev_type, int dt);
 device_type * search_or_fill(dt_head* hdt, char*dtName);
-void edit(g_head*hd, dt_head*hdt,int id);
+void edit(g_head*hd, dt_head*hdt,int id,int dt);
 int gui();
 void info();
-void save_and_exit(g_head*hd, dt_head*dth, FILE*fp);
+void save_and_exit(g_head*hd, FILE*fp);
 
 
 int main(){
     g_head *hd;
     dt_head *hdt;
     FILE * fp, *ffp, *fp1;
-    char* line, yn,*line_;
+    char* line;
     int ans,id,by, int_val;
     line = malloc(LINE_LEN);
 
@@ -98,147 +99,159 @@ int main(){
     while(bgets(line, LINE_LEN, fp)) {
         input_from_scv(hd, hdt, line);
     }
-    while(ans!=7){
+    while(ans!=7) {
         ans = gui();
-        if (ans==0){
-            clear
-            info();
-        }
-        if (ans==1){
-            clear
-            printf("EXAMPLE:iphone 13,phone,5000,13,89990.99,6.0,255,255,134\n");
-            printf("write data with , separator->");
-            input_kb(hd,hdt);
-        }
-        if (ans==2) {
-            clear
-            output(hd,hdt);
-            printf("write id of node you want to edit->");
-            scanf("%i",&id);
-            printf("EXAMPLE:iphone 13,phone,5000,13,89990.99,6.0,255,255,134\n");
-            printf("write new data with , separator->");
-            edit(hd,hdt,id);
-        }
-        if (ans==3) {
-            clear
-            output(hd,hdt);
-            printf("write id of node you want to delete->");
-            scanf("%i", &id);
-            deletion(hdt, hd, id);
-        }
-        if(ans==4) {
-            clear
-            output(hd, hdt);
-        }
-        if (ans==5){
-            clear
-            printf("Fields:\n"
-                   "1 - ID\n"
-                   "2 - Quantity\n"
-                   "3 - Name\n"
-                   "4 - Device Type\n"
-                   "5 - Capacity\n"
-                   "6 - Screen\n"
-                   "7 - Price\n"
-                   "8 - R Color\n"
-                   "9 - G Color\n"
-                   "10 - B Color\n");
-            printf("select field you want to search by->");
-            scanf("%i",&by);
-            if (by==1) {
-                printf("ID->");
+        switch (ans) {
+            case 0:
+                clear
+                info();
+                break;
+            case 1:
+                clear
+                printf("Select number of Device Type:");
+                output_dt(hdt);
                 scanf("%i", &int_val);
-                filter_by_int_(hd, hdt, get_no);
-            }
-            if(by==2) {
-                printf("Quantity->");
+                printf("EXAMPLE: name, battery capacity, quantity, price, screen diagonal, R color, G color, B color\n");
+                printf("write data with , separator AS EXAMPLE->");
+                input_kb(hd, hdt, int_val);
+                break;
+            case 2:
+                clear
+                output(hd, hdt);
+                printf("write id of node you want to edit->");
+                scanf("%i", &id);
+                printf("Select number of Device Type:");
+                output_dt(hdt);
                 scanf("%i", &int_val);
-                filter_by_int_(hd, hdt, get_quantity);
-            }
-            if (by==3) {
-                printf("Enter Name ->");
-                filter_by_str_(hd, hdt, get_name);
-            }
-            if (by==4){
-                printf("Enter Device Type ->");
-                filter_by_str_(hd,hdt,get_type);
-            }
-            if(by==5){
-                printf("Enter Capacity->");
-                filter_by_int_(hd,hdt,get_capacity);
-            }
-            if(by==6){
-                printf("Enter Screen Diagonal->");
-                filter_by_float_(hd,hdt,get_sd);
-            }
-            if(by==7){
-                printf("Enter Price->");
-                filter_by_float_(hd,hdt,get_price);
-            }
-            if (by==8){
-                printf("Enter Red Color Value->");
-                filter_by_int_(hd,hdt,get_R);
-            }
-            if (by==9){
-                printf("Enter Green Color Value->");
-                filter_by_int_(hd,hdt,get_G);
-            }
-            if (by==10){
-                printf("Enter Blue Color Value->");
-                filter_by_int_(hd,hdt,get_B);
-            }
-        }
-        if (ans==6){
-            clear
-            printf("Fields:\n"
-                   "1 - ID\n"
-                   "2 - Quantity\n"
-                   "3 - Name\n"
-                   "4 - Device Type\n"
-                   "5 - Capacity\n"
-                   "6 - Screen\n"
-                   "7 - Price\n"
-                   "8 - R Color\n"
-                   "9 - G Color\n"
-                   "10 - B Color\n");
-            printf("select field you want to sort by->");
-            scanf("%i",&by);
-            if (by==1) {
-                sort_by_int_(hd->first,hd->last,get_no);
-            }
-            if(by==2) {
-                sort_by_int_(hd->first,hd->last,get_quantity);
-            }
-            if (by==3) {
-                sort_by_str(hd->first,hd->last,get_name);
-            }
-            if (by==4){
-                sort_by_str(hd->first,hd->last,get_type);
-            }
-            if(by==5){
-                sort_by_int_(hd->first,hd->last,get_capacity);
-            }
-            if(by==6){
-                sort_by_float_(hd->first,hd->last,get_sd);
-            }
-            if(by==7){
-                sort_by_float_(hd->first,hd->last,get_price);
-            }
-            if (by==8){
-                sort_by_int_(hd->first,hd->last,get_R);
-            }
-            if (by==9){
-                sort_by_int_(hd->first,hd->last,get_G);
-            }
-            if (by==10){
-                sort_by_int_(hd->first,hd->last,get_B);
-            }
+                printf("EXAMPLE: name, battery capacity, quantity, price, screen diagonal, R color, G color, B color\n");
+                printf("write data with , separator AS EXAMPLE->");
+                edit(hd, hdt, id,int_val);
+                break;
+            case 3:
+                clear
+                output(hd, hdt);
+                printf("write id of node you want to delete->");
+                scanf("%i", &id);
+                deletion(hdt, hd, id);
+                break;
+            case 4:
+                clear
+                output(hd, hdt);
+                break;
+            case 5:
+                clear
+                printf("Fields:\n"
+                       "1 - ID\n"
+                       "2 - Quantity\n"
+                       "3 - Name\n"
+                       "4 - Device Type\n"
+                       "5 - Capacity\n"
+                       "6 - Screen\n"
+                       "7 - Price\n"
+                       "8 - R Color\n"
+                       "9 - G Color\n"
+                       "10 - B Color\n");
+                printf("select field you want to search by->");
+                scanf("%i", &by);
+                switch (by) {
+                    case 1:
+                        printf("ID->");
+                        scanf("%i", &int_val);
+                        filter_by_int_(hd, get_no);
+                        break;
+                    case 2:
+                        printf("Quantity->");
+                        scanf("%i", &int_val);
+                        filter_by_int_(hd,get_quantity);
+                        break;
+                    case 3:
+                        printf("Enter Name ->");
+                        filter_by_str_(hd,get_name);
+                        break;
+                    case 4:
+                        output_dt(hdt);
+                        printf("Enter Name Of Device Type ->");
+                        filter_by_str_(hd, get_type);
+                        break;
+                    case 5:
+                        printf("Enter Capacity->");
+                        filter_by_int_(hd, get_capacity);
+                        break;
+                    case 6:
+                        printf("Enter Screen Diagonal->");
+                        filter_by_float_(hd, get_sd);
+                        break;
+                    case 7:
+                        printf("Enter Price->");
+                        filter_by_float_(hd, get_price);
+                        break;
+                    case 8:
+                        printf("Enter Red Color Value->");
+                        filter_by_int_(hd, get_R);
+                        break;
+                    case 9:
+                        printf("Enter Green Color Value->");
+                        filter_by_int_(hd, get_G);
+                        break;
+                    case 10:
+                        printf("Enter Blue Color Value->");
+                        filter_by_int_(hd, get_B);
+                        break;
+                }
+                break;
+            case 6:
+                clear
+                printf("Fields:\n"
+                       "1 - ID\n"
+                       "2 - Quantity\n"
+                       "3 - Name\n"
+                       "4 - Device Type\n"
+                       "5 - Capacity\n"
+                       "6 - Screen\n"
+                       "7 - Price\n"
+                       "8 - R Color\n"
+                       "9 - G Color\n"
+                       "10 - B Color\n");
+                printf("select field you want to sort by->");
+                scanf("%i", &by);
+                switch (by) {
+                    case 1:
+                        sort_by_int_(hd->first, hd->last, get_no);
+                        break;
+                    case 2:
+                        sort_by_int_(hd->first, hd->last, get_quantity);
+                        break;
+                    case 3:
+                        sort_by_str(hd->first, hd->last, get_name);
+                        break;
+                    case 4:
+                        sort_by_str(hd->first, hd->last, get_type);
+                        break;
+                    case 5:
+                        sort_by_int_(hd->first, hd->last, get_capacity);
+                        break;
+                    case 6:
+                        sort_by_float_(hd->first, hd->last, get_sd);
+                        break;
+                    case 7:
+                        sort_by_float_(hd->first, hd->last, get_price);
+                        break;
+                    case 8:
+                        sort_by_int_(hd->first, hd->last, get_R);
+                        break;
+                    case 9:
+                        sort_by_int_(hd->first, hd->last, get_G);
+                        break;
+                    case 10:
+                        sort_by_int_(hd->first, hd->last, get_B);
+                        break;
+                }
         }
     }
     if (ans==7){
         clear
         fp1 = fopen("lab07.txt","w");
-        save_and_exit(hd,hdt,fp1);
+        save_and_exit(hd,fp1);
     }
     fclose(fp);
     fclose(ffp);
@@ -292,19 +305,21 @@ void fill(dt_head * dth, FILE* ffp) {
     _ = malloc(256);
     while(bgets(_, 256, ffp) != NULL) {
         node = (device_type *)malloc(sizeof(device_type));
-        node->name = _;
-        node->next=NULL;
-        if(dth->count == 0) {
-            dth->first = node;
-            dth->last = node;
+        if (node!=NULL){
+            node->name = _;
+            node->next=NULL;
+            if(dth->count == 0) {
+                dth->first = node;
+                dth->last = node;
+            }
+            else {
+                (dth->last)->next = node;
+                node->prev = dth->last;
+                dth->last = node;
+            }
+            dth->count++;
+            _ = malloc(256);
         }
-        else {
-            (dth->last)->next = node;
-            node->prev = dth->last;
-            dth->last = node;
-        }
-        dth->count++;
-        _ = malloc(256);
     }
     rewind(ffp);
 }
@@ -319,8 +334,10 @@ dt_head * make_dt(FILE* ffp) {
         lines++;
     }
     res = (dt_head *)malloc(lines*sizeof(dt_head));
-    rewind(ffp);
-    return res;
+    if (res!=NULL){
+        rewind(ffp);
+        return res;
+    }
 }
 
 void input_from_scv(g_head *hd, dt_head * dev_type, char* _) {
@@ -330,48 +347,47 @@ void input_from_scv(g_head *hd, dt_head * dev_type, char* _) {
     device_type * fcn;
     char **splitLine, *facName;
     db = (gadget *)malloc(sizeof(gadget));
+    if(db!=NULL){
+        splitLine = split(_, ',');
+        if(splitLine!=NULL){
+            db->name = splitLine[0];
+            facName = splitLine[1];
+            flag = 0;
+            for(fcn = dev_type->first; fcn != NULL && !flag; fcn = fcn->next) {
+                if(!strcmp(fcn->name, facName)) {
+                    db->device_type = fcn;
+                    flag = 1;
+                }
+            }
+            if(db->device_type == NULL) {
+                printf("Device %s not found in the list of device types.\nAre you sure you have necessary files?\n", facName);
+                exit(1);
+            }
+            db->battery_capacity = (int)strtol(splitLine[2], NULL, 10);
+            db->quantity = (int)strtol(splitLine[3], NULL, 10);
+            db->price = (float)atof(splitLine[4]);
+            db->screen_diag = (float)atof(splitLine[5]);
+            for(j = 0; j < 3; j++) db->color_in_RGB[j] = (int)strtol(splitLine[6+j], NULL, 10);
+            db->next = NULL;
+            db->no = hd->count + 1;
 
-    splitLine = split(_, ',');
-    if(splitLine == NULL) {
-        printf("Memory Error.");
-        exit(1);
-    }
+            if(!hd->count) {
+                hd->first = db;
+                db->prev = NULL;
+            }
+            else {
+                temp = hd->first;
+                while(temp->next != NULL) temp = temp->next;
+                temp->next = db;
+                db->prev = temp;
+            }
 
-    db->name = splitLine[0];
-    facName = splitLine[1];
-    flag = 0;
-    for(fcn = dev_type->first; fcn != NULL && !flag; fcn = fcn->next) {
-        if(!strcmp(fcn->name, facName)) {
-            db->device_type = fcn;
-            flag = 1;
+            hd->count++;
+            hd->last = db;
+            free(splitLine);
         }
     }
-    if(db->device_type == NULL) {
-        printf("Device %s not found in the list of device types.\nAre you sure you have necessary files?\n", facName);
-        exit(1);
-    }
-    db->battery_capacity = (int)strtol(splitLine[2], NULL, 10);
-    db->quantity = (int)strtol(splitLine[3], NULL, 10);
-    db->price = (float)atof(splitLine[4]);
-    db->screen_diag = (float)atof(splitLine[5]);
-    for(j = 0; j < 3; j++) db->color_in_RGB[j] = (int)strtol(splitLine[6+j], NULL, 10);
-    db->next = NULL;
-    db->no = hd->count + 1;
 
-    if(!hd->count) {
-        hd->first = db;
-        db->prev = NULL;
-    }
-    else {
-        temp = hd->first;
-        while(temp->next != NULL) temp = temp->next;
-        temp->next = db;
-        db->prev = temp;
-    }
-
-    hd->count++;
-    hd->last = db;
-    free(splitLine);
 }
 
 g_head *make_head() {
@@ -559,15 +575,12 @@ void sort_by_float_(gadget * left, gadget * right, float (*field)(gadget*)) {
 void swap_(gadget * temp0, gadget * temp1) {
     gadget * buff;
     buff = (gadget *)malloc(sizeof(gadget));
-    if(buff == NULL) {
-        printf("fatal error: Unable to Allocate Memory (swap_: buff)\n\n");
-        exit(1);
+    if(buff != NULL) {
+        swap_cpy_(buff, temp1);
+        swap_cpy_(temp1, temp0);
+        swap_cpy_(temp0, buff);
+        free(buff);
     }
-    swap_cpy_(buff, temp1);
-    swap_cpy_(temp1, temp0);
-    swap_cpy_(temp0, buff);
-
-    free(buff);
 }
 
 void swap_cpy_(gadget * temp0, gadget * temp1) {
@@ -584,21 +597,16 @@ void swap_cpy_(gadget * temp0, gadget * temp1) {
     temp0->quantity = temp1->quantity;
 }
 
-void filter_by_str_(g_head*hd,dt_head *types,char* (*field)(gadget*)){
+void filter_by_str_(g_head*hd,char* (*field)(gadget*)){
     char string[100];
-    device_type *fak;
     gadget *temp;
     getchar();
     bgets(string,LINE_LEN,stdin);
-    printf("Devices: ");
-    for(fak = types->first; fak != NULL; fak = fak->next) {
-        printf("%s ", fak->name);
-    }
     printf("\nOutput:\n");
     temp = hd->first;
     printf("+-No-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
     while(temp->next != NULL) {
-        if ((strcmp(field(temp),string))==0){
+        if (strstr(field(temp),string)!=NULL){
             printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                    temp->no, temp->name,
                    temp->device_type->name, temp->battery_capacity,
@@ -609,7 +617,7 @@ void filter_by_str_(g_head*hd,dt_head *types,char* (*field)(gadget*)){
         temp = temp->next;
     }
 
-    if (strcmp(field(temp),string)==0) {
+    if (strstr(field(temp),string)!=NULL) {
         printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                temp->no, temp->name,
                temp->device_type->name, temp->battery_capacity,
@@ -619,15 +627,10 @@ void filter_by_str_(g_head*hd,dt_head *types,char* (*field)(gadget*)){
     }
 }
 
-void filter_by_int_(g_head*hd,dt_head *types,int (*field)(gadget*)){
-    device_type *fak;
+void filter_by_int_(g_head*hd,int (*field)(gadget*)){
     gadget *temp;
     int equals;
     scanf("%i",&equals);
-    printf("Devices: ");
-    for(fak = types->first; fak != NULL; fak = fak->next) {
-        printf("%s ", fak->name);
-    }
     printf("\nOutput:\n");
     temp = hd->first;
     printf("+-No-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
@@ -655,15 +658,10 @@ void filter_by_int_(g_head*hd,dt_head *types,int (*field)(gadget*)){
 
 
 
-void filter_by_float_(g_head*hd,dt_head *types,float (*field)(gadget*)){
-    device_type *fak;
+void filter_by_float_(g_head*hd,float (*field)(gadget*)){
     gadget *temp;
     float equals;
     scanf("%f",&equals);
-    printf("Devices: ");
-    for(fak = types->first; fak != NULL; fak = fak->next) {
-        printf("%s ", fak->name);
-    }
     printf("\nOutput:\n");
     temp = hd->first;
     printf("+-No-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
@@ -690,62 +688,97 @@ void filter_by_float_(g_head*hd,dt_head *types,float (*field)(gadget*)){
 }
 
 
-void input_kb(g_head *hd,dt_head * dev_type){
-    char line[100],**pLine;
+void input_kb(g_head *hd,dt_head * dev_type, int dt){
+    char line[100],**pLine, dt_[15];
     gadget *Node;
     Node = malloc(sizeof(gadget));
     getchar();
     bgets(line,100,stdin);
     pLine= split(line,',');
-    if(pLine==NULL){
-        printf("Undefined error..");
-        exit(1);
+    if(pLine!=NULL){
+        switch (dt) {
+            case 1:
+                strcpy(dt_,"phone");
+                break;
+            case 2:
+                strcpy(dt_, "laptop");
+                break;
+            case 3:
+                strcpy(dt_,"tablet");
+                break;
+            case 4:
+                strcpy(dt_,"computer");
+                break;
+        }
+        Node->name = pLine[0];
+        Node->device_type = search_or_fill(dev_type,dt_);
+        Node->battery_capacity=(int)strtol(pLine[1],NULL,10);
+        Node->quantity=(int)strtol(pLine[2],NULL,10);
+        Node->price=(float) atof(pLine[3]);
+        Node->screen_diag=(float) atof(pLine[4]);
+        Node->color_in_RGB[0]=(int)strtol(pLine[5],NULL,10);
+        Node->color_in_RGB[1]=(int)strtol(pLine[6],NULL,10);
+        Node->color_in_RGB[2]=(int)strtol(pLine[7],NULL,10);
+        free(pLine);
+        hd->last->next=Node;
+        hd->first->prev=Node;
+        Node->next=NULL;
+        Node->prev=hd->last;
+        hd->last=Node;
+        hd->count++;
+        Node->no=hd->count;
     }
-    Node->name = pLine[0];
-    Node->device_type = search_or_fill(dev_type,pLine[1]);
-    Node->battery_capacity=(int)strtol(pLine[2],NULL,10);
-    Node->quantity=(int)strtol(pLine[3],NULL,10);
-    Node->price=(float) atof(pLine[4]);
-    Node->screen_diag=(float) atof(pLine[5]);
-    Node->color_in_RGB[0]=(int)strtol(pLine[6],NULL,10);
-    Node->color_in_RGB[1]=(int)strtol(pLine[7],NULL,10);
-    Node->color_in_RGB[2]=(int)strtol(pLine[8],NULL,10);
-    free(pLine);
-    hd->last->next=Node;
-    hd->first->prev=Node;
-    Node->next=NULL;
-    Node->prev=hd->last;
-    hd->last=Node;
-    hd->count++;
-    Node->no=hd->count;
 }
 
-void edit(g_head*hd, dt_head*hdt,int id){
-    char line[100],**pLine;
+void edit(g_head*hd, dt_head*hdt,int id,int dt){
+    char line[100],**pLine,dt_[15];
     gadget *temp;
     temp = malloc(sizeof(gadget));
     getchar();
     bgets(line,100,stdin);
     pLine= split(line,',');
-    if(pLine==NULL){
-        printf("Undefined error..");
-        exit(1);
-    }
-    temp = hd->first;
-    while (temp->next!=NULL){
+    if(pLine!=NULL){
+        switch (dt) {
+            case 1:
+                strcpy(dt_,"phone");
+                break;
+            case 2:
+                strcpy(dt_, "laptop");
+                break;
+            case 3:
+                strcpy(dt_,"tablet");
+                break;
+            case 4:
+                strcpy(dt_,"computer");
+        }
+        temp = hd->first;
+        while (temp->next!=NULL){
+            if(temp->no==id){
+                temp->name = pLine[0];
+                temp->device_type = search_or_fill(hdt,dt_);
+                temp->battery_capacity=(int)strtol(pLine[1],NULL,10);
+                temp->quantity=(int)strtol(pLine[2],NULL,10);
+                temp->price=(float) atof(pLine[3]);
+                temp->screen_diag=(float) atof(pLine[4]);
+                temp->color_in_RGB[0]=(int)strtol(pLine[5],NULL,10);
+                temp->color_in_RGB[1]=(int)strtol(pLine[6],NULL,10);
+                temp->color_in_RGB[2]=(int)strtol(pLine[7],NULL,10);
+                free(pLine);
+            }
+            temp=temp->next;
+        }
         if(temp->no==id){
             temp->name = pLine[0];
-            temp->device_type = search_or_fill(hdt,pLine[1]);
-            temp->battery_capacity=(int)strtol(pLine[2],NULL,10);
-            temp->quantity=(int)strtol(pLine[3],NULL,10);
-            temp->price=(float) atof(pLine[4]);
-            temp->screen_diag=(float) atof(pLine[5]);
-            temp->color_in_RGB[0]=(int)strtol(pLine[6],NULL,10);
-            temp->color_in_RGB[1]=(int)strtol(pLine[7],NULL,10);
-            temp->color_in_RGB[2]=(int)strtol(pLine[8],NULL,10);
+            temp->device_type = search_or_fill(hdt,dt_);
+            temp->battery_capacity=(int)strtol(pLine[1],NULL,10);
+            temp->quantity=(int)strtol(pLine[2],NULL,10);
+            temp->price=(float) atof(pLine[3]);
+            temp->screen_diag=(float) atof(pLine[4]);
+            temp->color_in_RGB[0]=(int)strtol(pLine[5],NULL,10);
+            temp->color_in_RGB[1]=(int)strtol(pLine[6],NULL,10);
+            temp->color_in_RGB[2]=(int)strtol(pLine[7],NULL,10);
             free(pLine);
         }
-        temp=temp->next;
     }
 }
 
@@ -763,16 +796,14 @@ device_type * search_or_fill(dt_head* hdt, char*dtName){
     }
     if (flag==0){
         dt = (device_type *)malloc(sizeof(device_type));
-        dt->name = dtName;
-        dt->next=NULL;
-        (hdt->last)->next = dt;
-        dt->prev = hdt->last;
-        hdt->last = dt;
-        hdt->count++;
-    }
-    if(dt==NULL){
-        printf("Undefined error..");
-        exit(1);
+        if(dt!=NULL){
+            dt->name = dtName;
+            dt->next=NULL;
+            (hdt->last)->next = dt;
+            dt->prev = hdt->last;
+            hdt->last = dt;
+            hdt->count++;
+        }
     }
     return dt;
 }
@@ -792,7 +823,7 @@ int gui(){
 }
 
 void info(){
-    printf("Hello! This is my project as course work for programming subject.\n"
+    puts("Hello! This is my project as course work for programming subject.\n"
            "The program is an electronic card file on the subject area gadgets. \n"
            "The program works with source .txt files, loading information from there into structures.\n"
            "The card file is a table with data about gadgets, which has fields:\n"
@@ -817,21 +848,30 @@ void info(){
            "Good luck and enjoy!\n");
 }
 
-void save_and_exit(g_head *hd, dt_head*dth, FILE *fp){
+void save_and_exit(g_head *hd,  FILE *fp){
     gadget *temp;
-    if(fp==NULL){
-        printf("Undefined error..");
-        exit(1);
-    }
-    temp = hd->first;
-    while (temp->next!=NULL){
+    if(fp!=NULL){
+        temp = hd->first;
+        while (temp->next!=NULL){
+            fprintf(fp,"%s,%s,%i,%i,%f,%f,%i,%i,%i\n",
+                    temp->name,temp->device_type->name,temp->battery_capacity,temp->quantity,
+                    temp->price,temp->screen_diag,temp->color_in_RGB[0],temp->color_in_RGB[1],temp->color_in_RGB[2]);
+            temp = temp->next;
+        }
         fprintf(fp,"%s,%s,%i,%i,%f,%f,%i,%i,%i\n",
                 temp->name,temp->device_type->name,temp->battery_capacity,temp->quantity,
                 temp->price,temp->screen_diag,temp->color_in_RGB[0],temp->color_in_RGB[1],temp->color_in_RGB[2]);
-        temp = temp->next;
-    }
-    fprintf(fp,"%s,%s,%i,%i,%f,%f,%i,%i,%i\n",
-            temp->name,temp->device_type->name,temp->battery_capacity,temp->quantity,
-            temp->price,temp->screen_diag,temp->color_in_RGB[0],temp->color_in_RGB[1],temp->color_in_RGB[2]);
 
+    }
+}
+
+void output_dt(dt_head*dt){
+    device_type *fak;
+    int i;
+    i=1;
+    printf("Devices: \n");
+    for(fak = dt->first; fak != NULL; fak = fak->next) {
+        printf("%i - %s \n",i, fak->name);
+        i++;
+    }
 }
