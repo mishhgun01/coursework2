@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -40,6 +39,8 @@ typedef struct g_Head{
     int count;
 }g_head;
 
+
+int q(char* str);
 void output_dt(dt_head*dt);
 char** split(char* line, const char sep);
 void output(g_head *hd, dt_head *types);
@@ -108,9 +109,13 @@ int main(){
                 break;
             case 1:
                 clear
-                printf("Select number of Device Type:");
+                printf("Select number of Device Type:\n");
                 output_dt(hdt);
-                scanf("%i", &int_val);
+                int_val = (int)strtol(fgets(line, 10, stdin), NULL, 10);
+                if(!isdigit(*line)){
+                    puts("It's not a number...Try again from main menu.");
+                    break;
+                }
                 printf("EXAMPLE: name, battery capacity, quantity, price, screen diagonal, R color, G color, B color\n");
                 printf("write data with , separator AS EXAMPLE->");
                 input_kb(hd, hdt, int_val);
@@ -119,10 +124,18 @@ int main(){
                 clear
                 output(hd, hdt);
                 printf("write id of node you want to edit->");
-                scanf("%i", &id);
+                id = (int)strtol(fgets(line, 10, stdin), NULL, 10);
+                if(!isdigit(*line)){
+                    puts("It's not a number...Try again from main menu.");
+                    break;
+                }
                 printf("Select number of Device Type:");
                 output_dt(hdt);
-                scanf("%i", &int_val);
+                int_val = (int)strtol(fgets(line, 10, stdin), NULL, 10);
+                if(!isdigit(*line)){
+                    puts("It's not a number...Try again from main menu.");
+                    break;
+                }
                 printf("EXAMPLE: name, battery capacity, quantity, price, screen diagonal, R color, G color, B color\n");
                 printf("write data with , separator AS EXAMPLE->");
                 edit(hd, hdt, id,int_val);
@@ -131,7 +144,12 @@ int main(){
                 clear
                 output(hd, hdt);
                 printf("write id of node you want to delete->");
-                scanf("%i", &id);
+
+                id = (int)strtol(fgets(line, 10, stdin), NULL, 10);
+                if(!isdigit(*line)){
+                    puts("It's not a number...Try again from main menu.");
+                    break;
+                }
                 deletion(hdt, hd, id);
                 break;
             case 4:
@@ -152,16 +170,31 @@ int main(){
                        "9 - G Color\n"
                        "10 - B Color\n");
                 printf("select field you want to search by->");
-                scanf("%i", &by);
+
+                by = (int)strtol(fgets(line, 10, stdin), NULL, 10);
+                if(!isdigit(*line)){
+                    puts("Wrong number...Try again from main menu.");
+                    break;
+                }
                 switch (by) {
                     case 1:
                         printf("ID->");
-                        scanf("%i", &int_val);
+
+                        int_val = (int)strtol(fgets(line, 10, stdin), NULL, 10);
+                        if(!isdigit(*line)){
+                            puts("What?");
+                            break;
+                        }
                         filter_by_int_(hd, get_no);
                         break;
                     case 2:
                         printf("Quantity->");
-                        scanf("%i", &int_val);
+
+                        int_val = (int)strtol(fgets(line, 10, stdin), NULL, 10);
+                        if(!isdigit(*line)){
+                            puts("Wrong number...Try again from main menu.");
+                            break;
+                        }
                         filter_by_int_(hd,get_quantity);
                         break;
                     case 3:
@@ -213,7 +246,12 @@ int main(){
                        "9 - G Color\n"
                        "10 - B Color\n");
                 printf("select field you want to sort by->");
-                scanf("%i", &by);
+
+                by = (int)strtol(fgets(line, 10, stdin), NULL, 10);
+                if(!isdigit(*line)){
+                    puts("Wrong number...Try again from main menu.");
+                    break;
+                }
                 switch (by) {
                     case 1:
                         sort_by_int_(hd->first, hd->last, get_no);
@@ -246,11 +284,13 @@ int main(){
                         sort_by_int_(hd->first, hd->last, get_B);
                         break;
                 }
+                case 7:
+                    break;
         }
     }
     if (ans==7){
         clear
-        fp1 = fopen("lab07.txt","w");
+        fp1 = fopen("save.txt","w");
         save_and_exit(hd,fp1);
     }
     fclose(fp);
@@ -258,7 +298,6 @@ int main(){
     free(hd);
     free(hdt);
     printf("See You!\n");
-    getchar();
     return 0;
 }
 
@@ -294,7 +333,7 @@ char** split(char* line, const char sep) {
 
 
 
-//iphone 13,phone,5000,13,89990.99,6.0,255,255,134
+//iphone 13,5000,13,89990.99,6.0,255,255,134
 
 void fill(dt_head * dth, FILE* ffp) {
     char* _;
@@ -386,6 +425,8 @@ void input_from_scv(g_head *hd, dt_head * dev_type, char* _) {
             hd->last = db;
             free(splitLine);
         }
+    }else{
+        puts("Something went wrong. Try again later.\n");
     }
 
 }
@@ -406,7 +447,7 @@ void output(g_head *hd, dt_head *types){
     }
     printf("\nOutput:\n");
     temp = hd->first;
-    printf("+-No-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
+    printf("+-ID-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
     while(temp->next != NULL) {
         printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                temp->no, temp->name,
@@ -442,21 +483,28 @@ char* bgets(char *st, int const len, FILE *fp) {
 
 void deletion(dt_head *dth, g_head *gh, int deleting){
     gadget * q;
+    int deleted;
     for(q = gh->first; q != NULL; q = q->next) {
         if(q->no == deleting) {
             if(q->next == NULL) {
                 q->prev->next = NULL;
+                deleted =1;
             } else if (q->prev == NULL) {
                 gh->first = q->next;
                 q->next->prev = NULL;
+                deleted =1;
             } else {
                 q->prev->next = q->next;
                 q->next->prev = q->prev;
+                deleted =1;
             }
         }
     }
-    dth->last = dth->last->prev;
-    dth->last->next = NULL;
+    if (deleted==1){
+        puts("Success! You can see changes in Output.\n");
+    }else{
+        puts("Something went wrong...Try again from main menu.\n");
+    }
 }
 
 
@@ -522,6 +570,7 @@ void sort_by_str(gadget * left, gadget * right, char* (*field)(gadget*)) {
                 sort_by_str(last->next, right,field);
         }
     }
+    puts("Success! You can see changes in Output.\n");
 }
 
 void sort_by_int_(gadget * left, gadget * right, int (*field)(gadget*)) {
@@ -546,6 +595,7 @@ void sort_by_int_(gadget * left, gadget * right, int (*field)(gadget*)) {
                 sort_by_int_(last->next, right,field);
         }
     }
+    puts("Success! You can see changes in Output.\n");
 }
 
 void sort_by_float_(gadget * left, gadget * right, float (*field)(gadget*)) {
@@ -570,6 +620,7 @@ void sort_by_float_(gadget * left, gadget * right, float (*field)(gadget*)) {
                 sort_by_float_(last->next, right,field);
         }
     }
+    puts("Success! You can see changes in Output.\n");
 }
 
 void swap_(gadget * temp0, gadget * temp1) {
@@ -599,14 +650,42 @@ void swap_cpy_(gadget * temp0, gadget * temp1) {
 
 void filter_by_str_(g_head*hd,char* (*field)(gadget*)){
     char string[100];
+    int type;
     gadget *temp;
-    getchar();
-    bgets(string,LINE_LEN,stdin);
-    printf("\nOutput:\n");
-    temp = hd->first;
-    printf("+-No-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
-    while(temp->next != NULL) {
-        if (strstr(field(temp),string)!=NULL){
+    type = (int)strtol(fgets(string, 10, stdin), NULL, 10);
+    if(!isdigit(*string)){
+        puts("Wrong number...Try again from main menu.");
+    }else{
+        switch (type) {
+            case 1:
+                strcpy(string,"phone");
+                break;
+            case 2:
+                strcpy(string, "laptop");
+                break;
+            case 3:
+                strcpy(string,"tablet");
+                break;
+            case 4:
+                strcpy(string,"computer");
+                break;
+        }
+        printf("\nOutput:\n");
+        temp = hd->first;
+        printf("+-ID-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
+        while(temp->next != NULL) {
+            if (strstr(field(temp),string)!=NULL){
+                printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
+                       temp->no, temp->name,
+                       temp->device_type->name, temp->battery_capacity,
+                       temp->quantity,
+                       temp->screen_diag, temp->price,
+                       temp->color_in_RGB[0], temp->color_in_RGB[1], temp->color_in_RGB[2]);
+            }
+            temp = temp->next;
+        }
+
+        if (strstr(field(temp),string)!=NULL) {
             printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                    temp->no, temp->name,
                    temp->device_type->name, temp->battery_capacity,
@@ -614,17 +693,8 @@ void filter_by_str_(g_head*hd,char* (*field)(gadget*)){
                    temp->screen_diag, temp->price,
                    temp->color_in_RGB[0], temp->color_in_RGB[1], temp->color_in_RGB[2]);
         }
-        temp = temp->next;
     }
 
-    if (strstr(field(temp),string)!=NULL) {
-        printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
-               temp->no, temp->name,
-               temp->device_type->name, temp->battery_capacity,
-               temp->quantity,
-               temp->screen_diag, temp->price,
-               temp->color_in_RGB[0], temp->color_in_RGB[1], temp->color_in_RGB[2]);
-    }
 }
 
 void filter_by_int_(g_head*hd,int (*field)(gadget*)){
@@ -633,7 +703,7 @@ void filter_by_int_(g_head*hd,int (*field)(gadget*)){
     scanf("%i",&equals);
     printf("\nOutput:\n");
     temp = hd->first;
-    printf("+-No-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
+    printf("+-ID-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
     while(temp->next != NULL) {
         if (field(temp)==equals){
             printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
@@ -664,7 +734,7 @@ void filter_by_float_(g_head*hd,float (*field)(gadget*)){
     scanf("%f",&equals);
     printf("\nOutput:\n");
     temp = hd->first;
-    printf("+-No-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
+    printf("+-ID-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
     while(temp->next != NULL) {
         if (field(temp)==equals){
             printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
@@ -695,7 +765,7 @@ void input_kb(g_head *hd,dt_head * dev_type, int dt){
     getchar();
     bgets(line,100,stdin);
     pLine= split(line,',');
-    if(pLine!=NULL){
+    if(pLine!=NULL&&q(line)==7){
         switch (dt) {
             case 1:
                 strcpy(dt_,"phone");
@@ -727,17 +797,20 @@ void input_kb(g_head *hd,dt_head * dev_type, int dt){
         hd->last=Node;
         hd->count++;
         Node->no=hd->count;
+        puts("Success! You can see changes in Output.\n");
+    }else{
+        puts("Something went wrong. Try again.\n");
     }
 }
 
 void edit(g_head*hd, dt_head*hdt,int id,int dt){
     char line[100],**pLine,dt_[15];
     gadget *temp;
-    temp = malloc(sizeof(gadget));
+    temp = (gadget*)malloc(sizeof(gadget));
     getchar();
     bgets(line,100,stdin);
-    pLine= split(line,',');
-    if(pLine!=NULL){
+    pLine = split(line,',');
+    if(pLine!=NULL && q(line) == 7){
         switch (dt) {
             case 1:
                 strcpy(dt_,"phone");
@@ -778,7 +851,10 @@ void edit(g_head*hd, dt_head*hdt,int id,int dt){
             temp->color_in_RGB[1]=(int)strtol(pLine[6],NULL,10);
             temp->color_in_RGB[2]=(int)strtol(pLine[7],NULL,10);
             free(pLine);
+            puts("Success! You can see changes in Output.\n");
         }
+    }else{
+        puts("Something went wrong. Try again.\n");
     }
 }
 
@@ -810,6 +886,8 @@ device_type * search_or_fill(dt_head* hdt, char*dtName){
 
 int gui(){
     int cmd;
+    char * line;
+    cmd = -1;
     printf("0 - Info\n"
            "1 - Add new node\n"
            "2 - Edit node by id\n"
@@ -818,34 +896,40 @@ int gui(){
            "5 - Search by field\n"
            "6 - Sort by field\n"
            "7 - Save & Exit\n");
-    scanf("%i", &cmd);
+    line = malloc(10);
+    cmd = (int)strtol(fgets(line, 10, stdin), NULL, 10);
+    if(!isdigit(*line)){
+        cmd=-1;
+        puts("Something went wrong. Try again.\n");
+    }
+    free(line);
     return cmd;
 }
 
 void info(){
     puts("Hello! This is my project as course work for programming subject.\n"
-           "The program is an electronic card file on the subject area gadgets. \n"
-           "The program works with source .txt files, loading information from there into structures.\n"
-           "The card file is a table with data about gadgets, which has fields:\n"
-           "ID\n"
-           "Name\n"
-           "Device type (getting from a linked list of device types)\n"
-           "Battery capacity\n"
-           "Quantity\n"
-           "Price\n"
-           "Screen diagonal\n"
-           "Color in RGB format\n"
-           "All fields must be separated by a comma(',').\n"
-           "You can manage the file cabinet using an interface that offers the following operations:\n"
-           "0 - Info (You are here now).\n"
-           "1 - Add new node - You can add new node in list of gadgets.\n"
-           "2 - Edit node by ID - You can write data with which you want to replace the original element by specifying its ID.\n"
-           "3 - Delete node by id - You can delete node from list of gadgets by ID.\n"
-           "4 - Output - You can see changes you made with data.\n"
-           "5 - Search by field - You can filter output with chosen value in chosen field.\n"
-           "6 - Sort by field - You can sort data by chosen field.\n"
-           "7 - Save & Exit - You can save changes you made in source .txt file.\n"
-           "Good luck and enjoy!\n");
+         "The program is an electronic card file on the subject area gadgets. \n"
+         "The program works with source .txt files, loading information from there into structures.\n"
+         "The card file is a table with data about gadgets, which has fields:\n"
+         "ID\n"
+         "Name\n"
+         "Device type (getting from a linked list of device types)\n"
+         "Battery capacity\n"
+         "Quantity\n"
+         "Price\n"
+         "Screen diagonal\n"
+         "Color in RGB format\n"
+         "All fields must be separated by a comma(',').\n"
+         "You can manage the file cabinet using an interface that offers the following operations:\n"
+         "0 - Info (You are here now).\n"
+         "1 - Add new node - You can add new node in list of gadgets.\n"
+         "2 - Edit node by ID - You can write data with which you want to replace the original element by specifying its ID.\n"
+         "3 - Delete node by id - You can delete node from list of gadgets by ID.\n"
+         "4 - Output - You can see changes you made with data.\n"
+         "5 - Search by field - You can filter output with chosen value in chosen field.\n"
+         "6 - Sort by field - You can sort data by chosen field.\n"
+         "7 - Save & Exit - You can save changes you made in source .txt file.\n"
+         "Good luck and enjoy!\n");
 }
 
 void save_and_exit(g_head *hd,  FILE *fp){
@@ -874,4 +958,16 @@ void output_dt(dt_head*dt){
         printf("%i - %s \n",i, fak->name);
         i++;
     }
+}
+
+int q(char* str){
+    int i,c,len;
+    len = strlen(str);
+    c=0;
+    for (i=0;i< len;i++){
+        if (str[i]==','){
+           c++;
+        }
+    }
+    return c;
 }
