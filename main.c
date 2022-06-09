@@ -62,12 +62,12 @@ int get_G(gadget*item);
 int get_B(gadget*item);
 void swap_cpy_(gadget * temp0, gadget * temp1);
 void swap_(gadget * temp0, gadget * temp1);
-void sort_by_str(gadget * left, gadget * right, char* (*field)(gadget*));
-void sort_by_int_(gadget * left, gadget * right, int (*field)(gadget*));
-void sort_by_float_(gadget * left, gadget * right, float (*field)(gadget*));
-void filter_by_str_(g_head*hd,char* (*field)(gadget*));
-void filter_by_int_(g_head*hd,int (*field)(gadget*));
-void filter_by_float_(g_head*hd,float (*field)(gadget*));
+void sort_by_str(gadget * left, gadget * right, char* (*field)(gadget*), int des);
+void sort_by_int_(gadget * left, gadget * right, int (*field)(gadget*), int asc);
+void sort_by_float_(gadget * left, gadget * right, float (*field)(gadget*), int asc);
+int filter_by_str_(g_head*hd,char* (*field)(gadget*));
+int filter_by_int_(g_head*hd,int (*field)(gadget*));
+int filter_by_float_(g_head*hd,float (*field)(gadget*));
 void input_kb(g_head *hd,dt_head * dev_type, int dt);
 device_type * search_or_fill(dt_head* hdt, char*dtName);
 void edit(g_head*hd, dt_head*hdt,int id,int dt);
@@ -80,11 +80,14 @@ int main(){
     g_head *hd;
     dt_head *hdt;
     FILE * fp, *ffp, *fp1;
-    char* line;
-    int ans,id,by, int_val;
+    char* line,*_line;
+    int ans,id,by, int_val, reverse, found;
     line = malloc(LINE_LEN);
 
     if(line == NULL) {printf("Memory Error.\n"); exit(1);}
+    _line = malloc(LINE_LEN);
+
+    if(_line == NULL) {printf("Memory Error.\n"); exit(1);}
 
     puts("Please maximize your window and press enter.");
     getchar();
@@ -129,11 +132,20 @@ int main(){
                     puts("It's not a number...Try again from main menu.");
                     break;
                 }
-                printf("Select number of Device Type:");
+
+                if (id > hd->count||id<1){
+                    puts("No Records with this ID.\n");
+                    break;
+                }
+                printf("Select number of Device Type:\n");
                 output_dt(hdt);
                 int_val = (int)strtol(fgets(line, 10, stdin), NULL, 10);
                 if(!isdigit(*line)){
                     puts("It's not a number...Try again from main menu.");
+                    break;
+                }
+                if (int_val>4||int_val<1){
+                    puts("No Device Type with this number.\n");
                     break;
                 }
                 printf("EXAMPLE: name, battery capacity, quantity, price, screen diagonal, R color, G color, B color\n");
@@ -148,6 +160,10 @@ int main(){
                 id = (int)strtol(fgets(line, 10, stdin), NULL, 10);
                 if(!isdigit(*line)){
                     puts("It's not a number...Try again from main menu.");
+                    break;
+                }
+                if (id > hd->count||id<1){
+                    puts("No Records with this ID.\n");
                     break;
                 }
                 deletion(hdt, hd, id);
@@ -172,8 +188,8 @@ int main(){
                 printf("select field you want to search by->");
 
                 by = (int)strtol(fgets(line, 10, stdin), NULL, 10);
-                if(!isdigit(*line)){
-                    puts("Wrong number...Try again from main menu.");
+                if(!isdigit(*line)||by>10||by<1){
+                    puts("Wrong number or not a number at all...Try again from main menu.");
                     break;
                 }
                 switch (by) {
@@ -182,10 +198,17 @@ int main(){
 
                         int_val = (int)strtol(fgets(line, 10, stdin), NULL, 10);
                         if(!isdigit(*line)){
-                            puts("What?");
+                            puts("It's not a number...Try again from main menu.");
                             break;
                         }
-                        filter_by_int_(hd, get_no);
+                        if (id > hd->count||id<1){
+                            puts("No Records with this ID.\n");
+                            break;
+                        }
+                        found=filter_by_int_(hd, get_no);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                        }
                         break;
                     case 2:
                         printf("Quantity->");
@@ -195,40 +218,76 @@ int main(){
                             puts("Wrong number...Try again from main menu.");
                             break;
                         }
-                        filter_by_int_(hd,get_quantity);
+                        found= filter_by_int_(hd,get_quantity);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                            break;
+                        }
                         break;
                     case 3:
                         printf("Enter Name ->");
-                        filter_by_str_(hd,get_name);
+                        found = filter_by_str_(hd,get_name);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                            break;
+                        }
                         break;
                     case 4:
                         output_dt(hdt);
                         printf("Enter Name Of Device Type ->");
-                        filter_by_str_(hd, get_type);
+                        found = filter_by_str_(hd, get_type);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                            break;
+                        }
                         break;
                     case 5:
                         printf("Enter Capacity->");
-                        filter_by_int_(hd, get_capacity);
+                        found = filter_by_int_(hd, get_capacity);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                            break;
+                        }
                         break;
                     case 6:
                         printf("Enter Screen Diagonal->");
-                        filter_by_float_(hd, get_sd);
+                        found = filter_by_float_(hd, get_sd);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                            break;
+                        }
                         break;
                     case 7:
                         printf("Enter Price->");
-                        filter_by_float_(hd, get_price);
+                        found = filter_by_float_(hd, get_price);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                            break;
+                        }
                         break;
                     case 8:
                         printf("Enter Red Color Value->");
-                        filter_by_int_(hd, get_R);
+                        found=filter_by_int_(hd, get_R);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                            break;
+                        }
                         break;
                     case 9:
                         printf("Enter Green Color Value->");
-                        filter_by_int_(hd, get_G);
+                        found = filter_by_int_(hd, get_G);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                            break;
+                        }
                         break;
                     case 10:
                         printf("Enter Blue Color Value->");
-                        filter_by_int_(hd, get_B);
+                        found = filter_by_int_(hd, get_B);
+                        if (found==0){
+                            puts("Nothing found.\n");
+                            break;
+                        }
                         break;
                 }
                 break;
@@ -245,43 +304,58 @@ int main(){
                        "8 - R Color\n"
                        "9 - G Color\n"
                        "10 - B Color\n");
-                printf("select field you want to sort by->");
-
+                printf("select field you want to sort by->\n");
                 by = (int)strtol(fgets(line, 10, stdin), NULL, 10);
-                if(!isdigit(*line)){
-                    puts("Wrong number...Try again from main menu.");
+                if(!isdigit(*line)||by>10||by<1){
+                    puts("It's not a number from list...Try again from main menu.");
+                    break;
+                }
+                printf("1 - in ascending \nOR\n2 - in descending order\n->");
+                int_val = (int) strtol(fgets(_line,10,stdin),NULL,10);
+                if(!isdigit(*_line)||(int_val!=1&&int_val!=2)){
+                    puts("Wrong number from list...Try again from main menu.");
                     break;
                 }
                 switch (by) {
                     case 1:
-                        sort_by_int_(hd->first, hd->last, get_no);
+                        sort_by_int_(hd->first, hd->last, get_no, int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                     case 2:
-                        sort_by_int_(hd->first, hd->last, get_quantity);
+                        sort_by_int_(hd->first, hd->last, get_quantity,int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                     case 3:
-                        sort_by_str(hd->first, hd->last, get_name);
+                        sort_by_str(hd->first, hd->last, get_name, int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                     case 4:
-                        sort_by_str(hd->first, hd->last, get_type);
+                        sort_by_str(hd->first, hd->last, get_type, int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                     case 5:
-                        sort_by_int_(hd->first, hd->last, get_capacity);
+                        sort_by_int_(hd->first, hd->last, get_capacity,int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                     case 6:
-                        sort_by_float_(hd->first, hd->last, get_sd);
+                        sort_by_float_(hd->first, hd->last, get_sd,int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                     case 7:
-                        sort_by_float_(hd->first, hd->last, get_price);
+                        sort_by_float_(hd->first, hd->last, get_price,int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                     case 8:
-                        sort_by_int_(hd->first, hd->last, get_R);
+                        sort_by_int_(hd->first, hd->last, get_R,int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                     case 9:
-                        sort_by_int_(hd->first, hd->last, get_G);
+                        sort_by_int_(hd->first, hd->last, get_G,int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                     case 10:
-                        sort_by_int_(hd->first, hd->last, get_B);
+                        sort_by_int_(hd->first, hd->last, get_B,int_val);
+                        puts("Success! You can see changes in Output.\n");
                         break;
                 }
                 case 7:
@@ -548,79 +622,148 @@ float get_sd(gadget*item){
     return item->screen_diag;
 }
 
-void sort_by_str(gadget * left, gadget * right, char* (*field)(gadget*)) {
-    gadget * last, * current;
-    if (left != right) {
-        if (left->next == right) {
-            if((strcmp(field(left), field(right)) > 0 ))
-                swap_(left, right);
-        } else {
-            last = left;
-            current = left;
-            do {
-                current = current->next;
-                if(strcmp(field(current), field(left)) < 0) {
-                    last = last->next;
-                    swap_(last, current);
-                }
-            } while (current != right);
-            swap_(left, last);
-            sort_by_str(left, last,field);
-            if (last != right)
-                sort_by_str(last->next, right,field);
+void sort_by_str(gadget * left, gadget * right, char* (*field)(gadget*), int asc) {
+    gadget *last, *current;
+    if (asc == 1) {
+
+        if (left != right) {
+            if (left->next == right) {
+                if ((strcmp(field(left), field(right)) > 0))
+                    swap_(left, right);
+            } else {
+                last = left;
+                current = left;
+                do {
+                    current = current->next;
+                    if (strcmp(field(current), field(left)) < 0) {
+                        last = last->next;
+                        swap_(last, current);
+                    }
+                } while (current != right);
+                swap_(left, last);
+                sort_by_str(left, last, field, asc);
+                if (last != right)
+                    sort_by_str(last->next, right, field, asc);
+            }
+        }
+    } else {
+
+        if (left != right) {
+            if (left->next == right) {
+                if ((strcmp(field(left), field(right)) < 0))
+                    swap_(left, right);
+            } else {
+                last = left;
+                current = left;
+                do {
+                    current = current->next;
+                    if (strcmp(field(current), field(left)) > 0) {
+                        last = last->next;
+                        swap_(last, current);
+                    }
+                } while (current != right);
+                swap_(left, last);
+                sort_by_str(left, last, field, asc);
+                if (last != right)
+                    sort_by_str(last->next, right, field, asc);
+            }
         }
     }
-    puts("Success! You can see changes in Output.\n");
 }
 
-void sort_by_int_(gadget * left, gadget * right, int (*field)(gadget*)) {
+void sort_by_int_(gadget * left, gadget * right, int (*field)(gadget*), int asc) {
     gadget * last, * current;
-    if (left != right) {
-        if (left->next == right) {
-            if(field(left)>field(right))
-                swap_(left, right);
-        } else {
-            last = left;
-            current = left;
-            do {
-                current = current->next;
-                if(field(current)<field(left)) {
-                    last = last->next;
-                    swap_(last, current);
-                }
-            } while (current != right);
-            swap_(left, last);
-            sort_by_int_(left, last,field);
-            if (last != right)
-                sort_by_int_(last->next, right,field);
+    if (asc ==1){
+        if (left != right) {
+            if (left->next == right) {
+                if(field(left)>field(right))
+                    swap_(left, right);
+            } else {
+                last = left;
+                current = left;
+                do {
+                    current = current->next;
+                    if(field(current)<field(left)) {
+                        last = last->next;
+                        swap_(last, current);
+                    }
+                } while (current != right);
+                swap_(left, last);
+                sort_by_int_(left, last,field,asc);
+                if (last != right)
+                    sort_by_int_(last->next, right,field,asc);
+            }
+        }
+    } else{
+        if (left != right) {
+            if (left->next == right) {
+                if(field(left)<field(right))
+                    swap_(left, right);
+            } else {
+                last = left;
+                current = left;
+                do {
+                    current = current->next;
+                    if(field(current)>field(left)) {
+                        last = last->next;
+                        swap_(last, current);
+                    }
+                } while (current != right);
+                swap_(left, last);
+                sort_by_int_(left, last,field,asc);
+                if (last != right)
+                    sort_by_int_(last->next, right,field,asc);
+            }
         }
     }
-    puts("Success! You can see changes in Output.\n");
+
 }
 
-void sort_by_float_(gadget * left, gadget * right, float (*field)(gadget*)) {
+void sort_by_float_(gadget * left, gadget * right, float (*field)(gadget*), int asc) {
     gadget * last, * current;
-    if (left != right) {
-        if (left->next == right) {
-            if(field(left)>field(right))
-                swap_(left, right);
-        } else {
-            last = left;
-            current = left;
-            do {
-                current = current->next;
-                if(field(current)<field(left)) {
-                    last = last->next;
-                    swap_(last, current);
-                }
-            } while (current != right);
-            swap_(left, last);
-            sort_by_float_(left, last,field);
-            if (last != right)
-                sort_by_float_(last->next, right,field);
+    if (asc==1){
+        if (left != right) {
+            if (left->next == right) {
+                if(field(left)>field(right))
+                    swap_(left, right);
+            } else {
+                last = left;
+                current = left;
+                do {
+                    current = current->next;
+                    if(field(current)<field(left)) {
+                        last = last->next;
+                        swap_(last, current);
+                    }
+                } while (current != right);
+                swap_(left, last);
+                sort_by_float_(left, last,field,asc);
+                if (last != right)
+                    sort_by_float_(last->next, right,field,asc);
+            }
+        }
+    }else{
+        if (left != right) {
+            if (left->next == right) {
+                if(field(left)<field(right))
+                    swap_(left, right);
+            } else {
+                last = left;
+                current = left;
+                do {
+                    current = current->next;
+                    if(field(current)>field(left)) {
+                        last = last->next;
+                        swap_(last, current);
+                    }
+                } while (current != right);
+                swap_(left, last);
+                sort_by_float_(left, last,field,asc);
+                if (last != right)
+                    sort_by_float_(last->next, right,field,asc);
+            }
         }
     }
-    puts("Success! You can see changes in Output.\n");
 }
 
 void swap_(gadget * temp0, gadget * temp1) {
@@ -648,9 +791,9 @@ void swap_cpy_(gadget * temp0, gadget * temp1) {
     temp0->quantity = temp1->quantity;
 }
 
-void filter_by_str_(g_head*hd,char* (*field)(gadget*)){
+int filter_by_str_(g_head*hd,char* (*field)(gadget*)){
     char string[100];
-    int type;
+    int type,found;
     gadget *temp;
     type = (int)strtol(fgets(string, 10, stdin), NULL, 10);
     if(!isdigit(*string)){
@@ -672,9 +815,11 @@ void filter_by_str_(g_head*hd,char* (*field)(gadget*)){
         }
         printf("\nOutput:\n");
         temp = hd->first;
+        found=0;
         printf("+-ID-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
         while(temp->next != NULL) {
             if (strstr(field(temp),string)!=NULL){
+                found=1;
                 printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                        temp->no, temp->name,
                        temp->device_type->name, temp->battery_capacity,
@@ -686,6 +831,7 @@ void filter_by_str_(g_head*hd,char* (*field)(gadget*)){
         }
 
         if (strstr(field(temp),string)!=NULL) {
+            found=1;
             printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                    temp->no, temp->name,
                    temp->device_type->name, temp->battery_capacity,
@@ -694,18 +840,20 @@ void filter_by_str_(g_head*hd,char* (*field)(gadget*)){
                    temp->color_in_RGB[0], temp->color_in_RGB[1], temp->color_in_RGB[2]);
         }
     }
-
+    return found;
 }
 
-void filter_by_int_(g_head*hd,int (*field)(gadget*)){
+int filter_by_int_(g_head*hd,int (*field)(gadget*)){
     gadget *temp;
-    int equals;
+    int equals, found;
     scanf("%i",&equals);
     printf("\nOutput:\n");
     temp = hd->first;
+    found=0;
     printf("+-ID-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
     while(temp->next != NULL) {
         if (field(temp)==equals){
+            found=1;
             printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                    temp->no, temp->name,
                    temp->device_type->name, temp->battery_capacity,
@@ -717,6 +865,7 @@ void filter_by_int_(g_head*hd,int (*field)(gadget*)){
     }
 
     if (field(temp)==equals) {
+        found=1;
         printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                temp->no, temp->name,
                temp->device_type->name, temp->battery_capacity,
@@ -724,19 +873,23 @@ void filter_by_int_(g_head*hd,int (*field)(gadget*)){
                temp->screen_diag, temp->price,
                temp->color_in_RGB[0], temp->color_in_RGB[1], temp->color_in_RGB[2]);
     }
+    return found;
 }
 
 
 
-void filter_by_float_(g_head*hd,float (*field)(gadget*)){
+int filter_by_float_(g_head*hd,float (*field)(gadget*)){
     gadget *temp;
     float equals;
+    int found;
     scanf("%f",&equals);
     printf("\nOutput:\n");
     temp = hd->first;
+    found=0;
     printf("+-ID-+-----------Name----------+--Device Type--+-Capacity-+-Quantity-+---Screen---+----Price---+----RGB Color----+\n");
     while(temp->next != NULL) {
         if (field(temp)==equals){
+            found = 1;
             printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                    temp->no, temp->name,
                    temp->device_type->name, temp->battery_capacity,
@@ -748,6 +901,7 @@ void filter_by_float_(g_head*hd,float (*field)(gadget*)){
     }
 
     if (field(temp)==equals) {
+        found=1;
         printf("| %-2d | %-23s | %-13s | %-8d | %-8d | %10.2f | %10.2f | %-3d | %-3d | %-3d |\n",
                temp->no, temp->name,
                temp->device_type->name, temp->battery_capacity,
@@ -755,6 +909,7 @@ void filter_by_float_(g_head*hd,float (*field)(gadget*)){
                temp->screen_diag, temp->price,
                temp->color_in_RGB[0], temp->color_in_RGB[1], temp->color_in_RGB[2]);
     }
+    return found;
 }
 
 
